@@ -3,8 +3,8 @@
     <div ref="list-content" style="text-align: left">
       <transition-group name="list-complete" tag="p">
         <span
-          v-for="item in lists"
-          v-bind:key="item"
+          v-for="(item, index) in lists"
+          v-bind:key="item + index"
           class="list-complete-item">
           {{item}}
         </span>
@@ -36,13 +36,6 @@ export default {
       contents: [
         {show: false, active: false},
         {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false},
         {show: false, active: false}
       ],
       transitionContents: []
@@ -55,6 +48,9 @@ export default {
   },
   methods: {
     contentAdd(el) {
+      if (this.transitionContents.length + 1 >= this.contents.length) {
+        this.contents.push({show: false, active: false})
+      }
       for (let i = 0; i < this.contents.length; i++) {
         let content = this.contents[i];
         if (!content.show) {
