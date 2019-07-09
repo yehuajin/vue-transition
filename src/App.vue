@@ -5,7 +5,7 @@
         <li
           @dragstart="dragstart"
           @dragend="dragend"
-          :index="index"
+          :dragIndex="index"
           @dragover="dragover"
           draggable
           v-for="(item, index) in lists"
@@ -42,10 +42,10 @@ export default {
   methods: {
     dragstart (e) {
       this.draging = {
-        dragIndex: Number(e.target.getAttribute('index'))
+        dragIndex: Number(e.target.getAttribute('dragIndex'))
       }
     },
-    dragend (e) {
+    dragend () {
       if (this.draging) {
         let dragIndex = this.draging.dragIndex
         let targetIndex = this.draging.targetIndex
@@ -56,7 +56,9 @@ export default {
       }
     },
     dragover (e) {
-      this.draging && (this.draging.targetIndex = (e.target.getAttribute('index')))
+      if (e.target.getAttribute('dragIndex')) {
+        this.draging && (this.draging.targetIndex = (e.target.getAttribute('dragIndex')))
+      }
     },
     contentAdd(el) {
       if (!this.$refs['content-copty'] || this.$refs['content-copty'].className) {
