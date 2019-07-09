@@ -124,4 +124,11 @@ export default {
 .list-complete-leave-active {
   position: absolute;
 }
+.list-complete-enter, .list-complete-leave-to
+  /* .list-complete-leave-active for below version 2.1.8 */ {
+  opacity: 0;
+}
+.list-complete-leave-active {
+  position: absolute;
+}
 </style>
