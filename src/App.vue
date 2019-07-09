@@ -1,24 +1,22 @@
 <template>
   <div id="app">
-    <div ref="list-content" style="text-align: left">
-      <transition-group name="list-complete" tag="p">
-        <span
+    <div ref="list-content" style="text-align: left;min-height: 18px;">
+      <transition-group type="transition" name="list-complete" tag="ul">
+        <li
+          @dragstart="dragstart"
+          @dragend="dragend"
+          :index="index"
+          @dragover="dragover"
+          draggable
           v-for="(item, index) in lists"
-          v-bind:key="item + index"
+          :key="item + index"
           class="list-complete-item">
           {{item}}
-        </span>
+        </li>
       </transition-group>
     </div>
+    <div ref="content-copty"></div>
     <HelloWorld />
-    <div class="content-container">
-      <transition @before-enter="beforeEnter" @enter="enter" @after-enter="afterEnter"
-                  name="drop" :key="index" v-for="(content, index) in contents" >
-        <div class="content" v-show="content.show">
-         {{content.text}}
-        </div>
-      </transition>
-    </div>
   </div>
 </template>
 
@@ -32,13 +30,8 @@ export default {
   },
   data () {
     return {
-      lists: [],
-      contents: [
-        {show: false, active: false},
-        {show: false, active: false},
-        {show: false, active: false}
-      ],
-      transitionContents: []
+      lists: ['默认1', '默认2', '默认3'],
+      draging: null
     }
   },
   mounted() {
@@ -47,57 +40,54 @@ export default {
     }.bind(this))
   },
   methods: {
+    dragstart (e) {
+      this.draging = {
+        dragIndex: Number(e.target.getAttribute('index'))
+      }
+    },
+    dragend (e) {
+      if (this.draging) {
+        let dragIndex = this.draging.dragIndex
+        let targetIndex = this.draging.targetIndex
+        let dragItem = ''
+        dragItem = targetIndex && this.lists.splice(dragIndex, 1)
+        targetIndex && this.lists.splice(targetIndex, 0, ...dragItem)
+        this.draging = null
+      }
+    },
+    dragover (e) {
+      this.draging && (this.draging.targetIndex = (e.target.getAttribute('index')))
+    },
     contentAdd(el) {
-      if (this.transitionContents.length + 1 >= this.contents.length) {
-        this.contents.push({show: false, active: false})
+      if (!this.$refs['content-copty'] || this.$refs['content-copty'].className) {
+        return
       }
-      for (let i = 0; i < this.contents.length; i++) {
-        let content = this.contents[i];
-        if (!content.show) {
-          content.show = true;
-          content.el = el;
-          content.text = el.innerText
-          this.transitionContents.push(content)
-          return;
-        }
-      }
-    },
-    beforeEnter(el) {
-      console.log(111111111)
-      this.contents.forEach((content) => {
-        if (content.show) {
-          if (content.active) {
-            return;
-          }
-          content.active = true;
-          let rect = content.el.getBoundingClientRect();
-          let x = rect.left;
-          let y = rect.top;
-          el.style.display = 'block';
-          el.style.webkitTransform = `translate3d(${x}px,${y}px,0)`;
-          el.style.transform = `translate3d(${x}px,${y}px,0)`;
-        }
+      let rect = el.getBoundingClientRect();
+      let x = rect.left;
+      let y = rect.top;
+      this.$refs['content-copty'].innerText = el.innerText
+      this.$refs['content-copty'].style.left = x + 'px';
+      this.$refs['content-copty'].style.top = y + 'px';
+      this.$refs['content-copty'].style.display = 'block';
+      this.$refs['content-copty'].className = 'content-copty'
+      this.$nextTick(()=> {
+        this.lists.splice(0, 0, el.innerText)
+        let content = this.$refs['list-content'].getBoundingClientRect();
+        let x1 = content.left;
+        let y1 = content.top;
+        this.$refs['content-copty'].style.left = x1 + 'px';
+        this.$refs['content-copty'].style.top = y1 + 'px';
+        this.$refs['content-copty'].style.opacity = 0;
+        setTimeout(() => {
+          this.$refs['content-copty'].innerText = ''
+          this.$refs['content-copty'].style.left = '';
+          this.$refs['content-copty'].style.top = '';
+          this.$refs['content-copty'].style.display = 'none';
+          this.$refs['content-copty'].className = ''
+          this.$refs['content-copty'].style.opacity = 1;
+        }, 2000)
       })
-    },
-    enter(el) {
-      this.$nextTick(() => {
-        let end = this.$refs['list-content'].getBoundingClientRect()
-        let x = end.left;
-        let y = end.top;
-        el.style.webkitTransform = `translate3d(${x}px,${y}px,0)`;
-        el.style.transform = `translate3d(${x}px,${y}px,0)`;
-      })
-    },
-    afterEnter(el) {
-      let content = this.transitionContents.shift();
-      this.lists.unshift(content.text)
-      if (content) {
-        content.show = false;
-        content.active = false;
-        content.text = ''
-        el.style.display = 'none';
-      }
-    },
+    }
   }
 }
 </script>
@@ -111,15 +101,27 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
-.content-container .content{
+.wrapper {
+  width: 100%;
+}
+.content-copty{
   position: fixed;
-  left: 0px;
-  top: 0;
-  transition: 3s all;
+  display: none;
+  transition: 2s all;
+}
+.list-complete-move {
+  transition: transform 2s;
 }
 .list-complete-item {
-  transition: all 1s;
   display: inline-block;
   margin-right: 10px;
+  transition: all 2s;
+  background-color: #42b983;
+}
+.list-complete-enter, .list-complete-leave-to {
+  opacity: 0;
+}
+.list-complete-leave-active {
+  position: absolute;
 }
 </style>
