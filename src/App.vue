@@ -31,7 +31,9 @@ export default {
   data () {
     return {
       lists: ['默认1', '默认2', '默认3'],
-      draging: null
+      draging: null,
+      lastTragetIndex: '',
+      animateList: []
     }
   },
   mounted() {
@@ -41,24 +43,45 @@ export default {
   },
   methods: {
     dragstart (e) {
-      this.draging = {
-        dragIndex: Number(e.target.getAttribute('dragIndex'))
+      let dragIndex = e.target.getAttribute('dragIndex')
+      if (dragIndex) {
+        this.draging = {
+          dragIndex: dragIndex
+        }
       }
     },
-    dragend () {
+    dragend (e) {
       if (this.draging) {
-        let dragIndex = this.draging.dragIndex
-        let targetIndex = this.draging.targetIndex
-        let dragItem = ''
-        dragItem = targetIndex && this.lists.splice(dragIndex, 1)
-        targetIndex && this.lists.splice(targetIndex, 0, ...dragItem)
-        this.draging = null
+        let lastTragetIndex = this.lastTragetIndex
+        this.lastTragetIndex = ''
+        setTimeout(() => {
+          this.draging = null
+          if (e.target.getAttribute('dragIndex') && lastTragetIndex) {
+            this.handleAnimate(e.target.getAttribute('dragIndex'), lastTragetIndex)
+          }
+
+        })
       }
     },
     dragover (e) {
-      if (e.target.getAttribute('dragIndex')) {
-        this.draging && (this.draging.targetIndex = (e.target.getAttribute('dragIndex')))
+      let lastTragetIndex = this.lastTragetIndex = e.target.getAttribute('dragIndex')
+      if (!this.animateList.length && this.draging && lastTragetIndex && this.draging.dragIndex !== lastTragetIndex) {
+        this.draging.targetIndex = lastTragetIndex
+        this.animateList = [this.handleAnimate]
       }
+    },
+    handleAnimate (DIndex, TIndex) {
+      let dragIndex = DIndex || this.draging.dragIndex
+      let targetIndex = TIndex || this.draging.targetIndex
+      if (targetIndex === dragIndex) {
+        return
+      }
+      this.draging && (this.draging.dragIndex = targetIndex)
+      let dragItem = this.lists.splice(dragIndex, 1)[0]
+      this.lists.splice(targetIndex, 0, dragItem)
+      setTimeout(() => {
+        this.animateList = []
+      }, 2000)
     },
     contentAdd(el) {
       if (this.lists.indexOf(el.innerText) !== -1) {
@@ -93,6 +116,13 @@ export default {
           this.$refs['content-copty'].style.opacity = 1;
         }, 2000)
       })
+    }
+  },
+  watch: {
+    'animateList' (val) {
+      if (val.length) {
+        val[0]()
+      }
     }
   }
 }
