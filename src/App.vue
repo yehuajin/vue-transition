@@ -9,7 +9,7 @@
           @dragover="dragover"
           draggable
           v-for="(item, index) in lists"
-          :key="item + index"
+          :key="item"
           class="list-complete-item">
           {{item}}
         </li>
@@ -61,6 +61,10 @@ export default {
       }
     },
     contentAdd(el) {
+      if (this.lists.indexOf(el.innerText) !== -1) {
+        alert('该项已添加')
+        return
+      }
       if (!this.$refs['content-copty'] || this.$refs['content-copty'].className) {
         return
       }
