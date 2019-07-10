@@ -9,9 +9,9 @@
           @dragover="dragover"
           draggable
           v-for="(item, index) in lists"
-          :key="item"
+          :key="item.name"
           class="list-complete-item">
-          {{item}}
+          {{item.name}}
         </li>
       </transition-group>
     </div>
@@ -30,7 +30,7 @@ export default {
   },
   data () {
     return {
-      lists: ['默认1', '默认2', '默认3'],
+      lists: [{name: '默认1'}, {name: '默认2'}, {name: '默认3'}],
       draging: null,
       lastTragetIndex: '',
       animateList: []
@@ -84,7 +84,8 @@ export default {
       }, 2000)
     },
     contentAdd(el) {
-      if (this.lists.indexOf(el.innerText) !== -1) {
+      let hasItem = this.lists.filter((item) => item.name === el.innerText)
+      if (hasItem.length) {
         alert('该项已添加')
         return
       }
@@ -100,7 +101,7 @@ export default {
       this.$refs['content-copty'].style.display = 'block';
       this.$refs['content-copty'].className = 'content-copty'
       this.$nextTick(()=> {
-        this.lists.splice(0, 0, el.innerText)
+        this.lists.splice(0, 0, {name: el.innerText})
         let content = this.$refs['list-content'].getBoundingClientRect();
         let x1 = content.left;
         let y1 = content.top;
